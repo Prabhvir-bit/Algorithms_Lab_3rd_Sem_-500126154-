@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Task {
+    int taskId;
+    int dueDate;
+    int reward;
+};
+
+int compareProfit(const void *a, const void *b) {
+    struct Task *taskA = (struct Task *)a;
+    struct Task *taskB = (struct Task *)b;
+    return (taskB->reward - taskA->reward);
+}
+
+int getMaxDeadline(struct Task tasks[], int count) {
+    int max = tasks[0].dueDate;
+    for (int i = 1; i < count; i++) {
+        if (tasks[i].dueDate > max)
+            max = tasks[i].dueDate;
+    }
+    return max;
+}
+
+void scheduleTasks(struct Task tasks[], int count) {
+    qsort(tasks, count, sizeof(struct Task), compareProfit);
+
+    int maxDueDate = getMaxDeadline(tasks, count);
+
+    int *timeSlots = (int *)malloc((maxDueDate + 1) * sizeof(int));
+    for (int i = 0; i <= maxDueDate; i++) {
+        timeSlots[i] = -1;
+    }
+
+    int completedTasks = 0;
+    int totalReward = 0;
+
+    for (int i = 0; i < count; i++) {
+        for (int j = tasks[i].dueDate; j > 0; j--) {
+            if (timeSlots[j] == -1) {
+                timeSlots[j] = tasks[i].taskId;
+                completedTasks++;
+                totalReward += tasks[i].reward;
+                break;
+            }
+        }
+    }
+
+    printf("Optimal sequence of tasks to maximize profit:\n");
+    for (int i = 1; i <= maxDueDate; i++) {
+        if (timeSlots[i] != -1)
+            printf("Task %d\n", timeSlots[i]);
+    }
+    printf("Total number of tasks completed: %d\n", completedTasks);
+    printf("Total profit earned: %d\n", totalReward);
+
+    free(timeSlots);
+}
+
+int main() {
+    int taskCount;
+
+    printf("Enter the number of tasks: ");
+    scanf("%d", &taskCount);
+
+    struct Task tasks[taskCount];
+
+    for (int i = 0; i < taskCount; i++) {
+        printf("Enter deadline and profit for task %d: ", i + 1);
+        scanf("%d %d", &tasks[i].dueDate, &tasks[i].reward);
+        tasks[i].taskId = i + 1;
+    }
+
+    scheduleTasks(tasks, taskCount);
+
+    return 0;
+}
